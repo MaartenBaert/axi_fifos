@@ -1,0 +1,6 @@
+__pycache__
+build-*
+private-*
+
+*.code-workspace
+*.gtkw
