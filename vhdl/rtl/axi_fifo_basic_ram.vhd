@@ -1,6 +1,8 @@
+-- Copyright (c) 2022 Maarten Baert <info@maartenbaert.be>
+-- Available under the MIT License - see LICENSE.txt for details.
+
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 
 entity axi_fifo_basic_ram is
     generic(
