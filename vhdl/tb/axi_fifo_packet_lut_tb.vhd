@@ -84,7 +84,9 @@ begin
         variable v_pcg32_state_dummy : unsigned(63 downto 0) := x"5b13b1e7b2b0f84d";
         variable v_data : std_logic_vector(c_width - 1 downto 0);
         variable v_packet_size : natural range 0 to c_depth;
-        variable v_select : natural range 0 to 3;
+        variable v_select_packet : natural range 0 to 3;
+        variable v_select_commit : natural range 0 to 1;
+        variable v_select_cancel : natural range 0 to 1;
     begin
         wait until rising_edge(clk);
         rst <= '1';
@@ -94,45 +96,66 @@ begin
         input_commit <= '0';
         wait until rising_edge(clk);
         rst <= '0';
+        v_select_cancel := 0;
         for i in 0 to c_num_packets - 1 loop
             
             -- choose a random packet size, and whether it is a real or dummy packet
             pcg32_random(v_pcg32_state, v_packet_size, 0, c_depth);
-            pcg32_random(v_pcg32_state, v_select, 0, 3);
+            pcg32_random(v_pcg32_state, v_select_packet, 0, 3);
             
+            if v_select_packet = 0 then
+                v_select_commit := 0;
+            else
+                pcg32_random(v_pcg32_state_dummy, v_select_commit, 0, 1);
+            end if;
+
             -- send the packet
             for j in 0 to v_packet_size - 1 loop
                 while stutter(0) = '0' loop
                     wait until rising_edge(clk);
                 end loop;
-                if v_select = 0 then
+                if v_select_packet = 0 then
                     pcg32_random(v_pcg32_state_dummy, v_data);
                 else
                     pcg32_random(v_pcg32_state_real, v_data);
                 end if;
                 input_data <= v_data;
                 input_valid <= '1';
+                if v_select_cancel = 1 and j = 0 then
+                    input_cancel <= '1';
+                end if;
+                if v_select_commit = 1 and j = v_packet_size - 1 then
+                    input_commit <= '1';
+                end if;
                 wait until rising_edge(clk);
                 while input_ready = '0' loop
                     wait until rising_edge(clk);
                 end loop;
                 input_data <= (others => 'X');
                 input_valid <= '0';
+                input_cancel <= '0';
+                input_commit <= '0';
             end loop;
             
-            if v_select = 0 then
+            if v_select_packet = 0 then
                 
                 -- cancel the packet
-                input_cancel <= '1';
-                wait until rising_edge(clk);
-                input_cancel <= '0';
+                pcg32_random(v_pcg32_state_dummy, v_select_cancel, 0, 1);
+                if v_select_cancel = 0 then
+                    input_cancel <= '1';
+                    wait until rising_edge(clk);
+                    input_cancel <= '0';
+                end if;
                 
             else
                 
                 -- commit the packet
-                input_commit <= '1';
-                wait until rising_edge(clk);
-                input_commit <= '0';
+                v_select_cancel := 0;
+                if v_select_commit = 0 then
+                    input_commit <= '1';
+                    wait until rising_edge(clk);
+                    input_commit <= '0';
+                end if;
                 
             end if;
             
@@ -146,7 +169,7 @@ begin
         variable v_pcg32_state_real : unsigned(63 downto 0) := x"c4703c5c2114ac3a";
         variable v_data : std_logic_vector(c_width - 1 downto 0);
         variable v_packet_size : natural range 0 to c_depth;
-        variable v_select : natural range 0 to 3;
+        variable v_select_packet : natural range 0 to 3;
         variable v_num_passed : natural := 0;
         variable v_num_total : natural := 0;
     begin
@@ -157,10 +180,10 @@ begin
             
             -- choose a random packet size, and whether it is a real or dummy packet
             pcg32_random(v_pcg32_state, v_packet_size, 0, c_depth);
-            pcg32_random(v_pcg32_state, v_select, 0, 3);
+            pcg32_random(v_pcg32_state, v_select_packet, 0, 3);
             
             -- receive the packet
-            if v_select /= 0 then
+            if v_select_packet /= 0 then
                 for j in 0 to v_packet_size - 1 loop
                     while stutter(1) = '0' loop
                         wait until rising_edge(clk);
