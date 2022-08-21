@@ -33,6 +33,8 @@ architecture rtl of axi_fifo_basic_ram is
     -- memory that holds the data
     type memory_t is array(0 to depth - 1) of std_logic_vector(width - 1 downto 0);
     signal r_memory : memory_t;
+    attribute RAM_STYLE : string;
+    attribute RAM_STYLE of r_memory : signal is "BRAM";
 
     -- memory output register and bypass logic
     signal r_memory_data : std_logic_vector(width - 1 downto 0);

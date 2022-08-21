@@ -101,11 +101,11 @@ begin
         rst <= '0';
         v_select_cancel := 0;
         for i in 0 to c_num_packets - 1 loop
-            
+
             -- choose a random packet size, and whether it is a real or dummy packet
             pcg32_random(v_pcg32_state, v_packet_size, 0, c_depth);
             pcg32_random(v_pcg32_state, v_select_packet, 0, 3);
-            
+
             if v_select_packet = 0 then
                 v_select_commit := 0;
             else
@@ -139,9 +139,9 @@ begin
                 input_cancel <= '0';
                 input_commit <= '0';
             end loop;
-            
+
             if v_select_packet = 0 then
-                
+
                 -- cancel the packet
                 pcg32_random(v_pcg32_state_dummy, v_select_cancel, 0, 1);
                 if v_select_cancel = 0 then
@@ -149,9 +149,9 @@ begin
                     wait until rising_edge(clk);
                     input_cancel <= '0';
                 end if;
-                
+
             else
-                
+
                 -- commit the packet
                 v_select_cancel := 0;
                 if v_select_commit = 0 then
@@ -159,9 +159,9 @@ begin
                     wait until rising_edge(clk);
                     input_commit <= '0';
                 end if;
-                
+
             end if;
-            
+
         end loop;
         wait;
     end process;
@@ -180,11 +180,11 @@ begin
         output_ready <= '0';
         wait until rising_edge(clk);
         for i in 0 to c_num_packets - 1 loop
-            
+
             -- choose a random packet size, and whether it is a real or dummy packet
             pcg32_random(v_pcg32_state, v_packet_size, 0, c_depth);
             pcg32_random(v_pcg32_state, v_select_packet, 0, 3);
-            
+
             -- receive the packet
             if v_select_packet /= 0 then
                 for j in 0 to v_packet_size - 1 loop
@@ -206,7 +206,7 @@ begin
                     v_num_total := v_num_total + 1;
                 end loop;
             end if;
-            
+
         end loop;
         report "axi_fifo_packet_ram_tb result: " & integer'image(v_num_passed) &
             "/" & integer'image(v_num_total) & " passed" severity note;

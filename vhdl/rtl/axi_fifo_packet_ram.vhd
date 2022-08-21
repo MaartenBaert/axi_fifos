@@ -35,6 +35,8 @@ architecture rtl of axi_fifo_packet_ram is
     -- memory that holds the data
     type memory_t is array(0 to depth - 1) of std_logic_vector(width - 1 downto 0);
     signal r_memory : memory_t;
+    attribute RAM_STYLE : string;
+    attribute RAM_STYLE of r_memory : signal is "BRAM";
 
     -- memory output register and bypass logic
     signal r_memory_data : std_logic_vector(width - 1 downto 0);
@@ -57,7 +59,7 @@ begin
     -- generate full and empty flags (combinatorially)
     s_full <= '1' when r_read_pos = r_write_pos and r_write_wrapped = '1' else '0';
     s_empty <= '1' when r_read_pos = r_commit_pos and r_commit_wrapped = '0' else '0';
-    
+
     -- generate outputs based on flags
     input_ready <= not s_full;
     output_data <= r_bypass_data when r_use_bypass = '1' else r_memory_data;
