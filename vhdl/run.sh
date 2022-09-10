@@ -13,8 +13,10 @@ RTLFILES=(
     "axi_fifo_basic_lut"
     "axi_fifo_basic_sr"
     "axi_fifo_basic_ram"
+    "axi_fifo_basic_exram"
     "axi_fifo_packet_lut"
     "axi_fifo_packet_ram"
+    "ram_wrapper"
 )
 TBFILES=(
     "axi_fifo_tb_utils_pck"
@@ -23,6 +25,7 @@ TESTBENCHES=(
     "axi_fifo_basic_lut_tb"
     "axi_fifo_basic_sr_tb"
     "axi_fifo_basic_ram_tb"
+    "axi_fifo_basic_exram_tb"
     "axi_fifo_packet_lut_tb"
     "axi_fifo_packet_ram_tb"
 )
@@ -54,6 +57,6 @@ for FILE in "${TESTBENCHES[@]}"; do
     ghdl -e --work=${WORK} ${FILE}
 
     echo "- Running ${FILE} ..."
-    ./${FILE} --wave=${FILE}.ghw
+    ghdl -r --work=${WORK} ${FILE} --wave=${FILE}.ghw
 
 done
