@@ -16,7 +16,7 @@ architecture bhv of axi_fifo_basic_ram_tb is
 
     constant c_width      : natural := 32;
     constant c_depth      : natural := 10;
-    constant c_num_cycles : natural := 1000;
+    constant c_num_cycles : natural := 10000;
 
     -- DUT signals
     signal clk          : std_logic;

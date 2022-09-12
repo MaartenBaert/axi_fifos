@@ -18,7 +18,7 @@ architecture bhv of axi_fifo_basic_exram_tb is
     constant c_depth          : natural := 10;
     constant c_input_latency  : natural := 1;
     constant c_output_latency : natural := 2;
-    constant c_num_cycles     : natural := 1000;
+    constant c_num_cycles     : natural := 10000;
 
     -- DUT signals
     signal clk          : std_logic;
