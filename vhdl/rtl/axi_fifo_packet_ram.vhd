@@ -66,9 +66,11 @@ begin
     output_valid <= not s_empty;
 
     process(clk)
-        variable v_read_pos : natural range 0 to depth - 1;
-        variable v_write_pos     : natural range 0 to depth - 1;
-        variable v_write_wrapped : std_logic;
+        variable v_read_pos       : natural range 0 to depth - 1;
+        variable v_write_pos      : natural range 0 to depth - 1;
+        variable v_commit_pos     : natural range 0 to depth - 1;
+        variable v_write_wrapped  : std_logic;
+        variable v_commit_wrapped : std_logic;
     begin
         if rising_edge(clk) then
             if rst = '1' then
@@ -82,16 +84,19 @@ begin
 
             else
 
+                -- copy registers into variables
                 v_read_pos := r_read_pos;
                 v_write_pos := r_write_pos;
+                v_commit_pos := r_commit_pos;
                 v_write_wrapped := r_write_wrapped;
+                v_commit_wrapped := r_commit_wrapped;
 
                 -- pop
                 if output_ready = '1' and s_empty = '0' then
                     if v_read_pos = depth - 1 then
                         v_read_pos := 0;
                         v_write_wrapped := '0';
-                        r_commit_wrapped <= '0';
+                        v_commit_wrapped := '0';
                     else
                         v_read_pos := v_read_pos + 1;
                     end if;
@@ -101,8 +106,8 @@ begin
 
                 -- push
                 if input_cancel = '1' then
-                    v_write_pos := r_commit_pos;
-                    v_write_wrapped := r_commit_wrapped;
+                    v_write_pos := v_commit_pos;
+                    v_write_wrapped := v_commit_wrapped;
                 end if;
                 if input_valid = '1' and s_full = '0' then
                     r_memory(v_write_pos) <= input_data;
@@ -118,13 +123,16 @@ begin
                     end if;
                 end if;
                 if input_commit = '1' then
-                    r_commit_pos <= v_write_pos;
-                    r_commit_wrapped <= v_write_wrapped;
+                    v_commit_pos := v_write_pos;
+                    v_commit_wrapped := v_write_wrapped;
                 end if;
 
+                -- copy variables back into registers
                 r_read_pos <= v_read_pos;
                 r_write_pos <= v_write_pos;
+                r_commit_pos <= v_commit_pos;
                 r_write_wrapped <= v_write_wrapped;
+                r_commit_wrapped <= v_commit_wrapped;
 
             end if;
         end if;
