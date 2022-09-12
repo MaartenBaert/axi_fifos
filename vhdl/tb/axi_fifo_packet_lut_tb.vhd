@@ -14,9 +14,9 @@ end axi_fifo_packet_lut_tb;
 
 architecture bhv of axi_fifo_packet_lut_tb is
 
-    constant c_width      : natural := 32;
-    constant c_depth      : natural := 10;
-    constant c_num_packets : natural := 200;
+    constant c_width       : natural := 32;
+    constant c_depth       : natural := 10;
+    constant c_num_packets : natural := 5000;
 
     -- DUT signals
     signal clk          : std_logic;
@@ -88,6 +88,7 @@ begin
         variable v_data : std_logic_vector(c_width - 1 downto 0);
         variable v_packet_size : natural range 0 to c_depth;
         variable v_select_packet : natural range 0 to 3;
+        variable v_delayed_cancel : boolean;
         variable v_select_commit : natural range 0 to 1;
         variable v_select_cancel : natural range 0 to 1;
     begin
@@ -99,12 +100,14 @@ begin
         input_commit <= '0';
         wait until rising_edge(clk);
         rst <= '0';
-        v_select_cancel := 0;
+        v_delayed_cancel := false;
         for i in 0 to c_num_packets - 1 loop
 
             -- choose a random packet size, and whether it is a real or dummy packet
             pcg32_random(v_pcg32_state, v_packet_size, 0, c_depth);
             pcg32_random(v_pcg32_state, v_select_packet, 0, 3);
+
+            --report "[IN] i=" & integer'image(i) & ", v_packet_size=" & integer'image(v_packet_size) & ", v_select_packet=" & integer'image(v_select_packet) severity note;
 
             if v_select_packet = 0 then
                 v_select_commit := 0;
@@ -122,10 +125,12 @@ begin
                 else
                     pcg32_random(v_pcg32_state_real, v_data);
                 end if;
+                --report "[IN] i=" & integer'image(i) & ", j=" & integer'image(j) & ", data=" & to_hex_string(v_data) severity note;
                 input_data <= v_data;
                 input_valid <= '1';
-                if v_select_cancel = 1 and j = 0 then
+                if v_delayed_cancel and j = 0 then
                     input_cancel <= '1';
+                    v_delayed_cancel := false;
                 end if;
                 if v_select_commit = 1 and j = v_packet_size - 1 then
                     input_commit <= '1';
@@ -148,15 +153,21 @@ begin
                     input_cancel <= '1';
                     wait until rising_edge(clk);
                     input_cancel <= '0';
+                else
+                    v_delayed_cancel := true;
                 end if;
 
             else
 
                 -- commit the packet
-                v_select_cancel := 0;
                 if v_select_commit = 0 then
+                    if v_delayed_cancel then
+                        input_cancel <= '1';
+                        v_delayed_cancel := false;
+                    end if;
                     input_commit <= '1';
                     wait until rising_edge(clk);
+                    input_cancel <= '0';
                     input_commit <= '0';
                 end if;
 
@@ -185,6 +196,8 @@ begin
             pcg32_random(v_pcg32_state, v_packet_size, 0, c_depth);
             pcg32_random(v_pcg32_state, v_select_packet, 0, 3);
 
+            --report "[OUT] i=" & integer'image(i) & ", v_packet_size=" & integer'image(v_packet_size) & ", v_select_packet=" & integer'image(v_select_packet) severity note;
+
             -- receive the packet
             if v_select_packet /= 0 then
                 for j in 0 to v_packet_size - 1 loop
@@ -198,10 +211,11 @@ begin
                     end loop;
                     output_ready <= '0';
                     pcg32_random(v_pcg32_state_real, v_data);
+                    --report "[OUT] i=" & integer'image(i) & ", j=" & integer'image(j) & ", data=" & to_hex_string(v_data) severity note;
                     if output_data = v_data then
                         v_num_passed := v_num_passed + 1;
                     else
-                        report "Incorrect data for i=" & integer'image(i) severity warning;
+                        report "Incorrect data for i=" & integer'image(i) & ", j=" & integer'image(j) severity warning;
                     end if;
                     v_num_total := v_num_total + 1;
                 end loop;
