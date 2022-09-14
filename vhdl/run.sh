@@ -16,6 +16,7 @@ RTLFILES=(
     "axi_fifo_basic_exram"
     "axi_fifo_packet_lut"
     "axi_fifo_packet_ram"
+    "axi_fifo_packet_exram"
     "ram_wrapper"
 )
 TBFILES=(
@@ -28,6 +29,7 @@ TESTBENCHES=(
     "axi_fifo_basic_exram_tb"
     "axi_fifo_packet_lut_tb"
     "axi_fifo_packet_ram_tb"
+    "axi_fifo_packet_exram_tb"
 )
 
 echo "Processing RTL files ..."

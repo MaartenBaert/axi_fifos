@@ -8,13 +8,22 @@ The FIFOs are all implemented in standard VHDL, but written in such a way that X
 FIFOs
 -----
 
-| Module name         | Memory type              | Extra features |
-| ------------------- | ------------------------ | -------------- |
-| axi_fifo_basic_lut  | LUT-based RAM            | -              |
-| axi_fifo_basic_sr   | LUT-based shift register | -              |
-| axi_fifo_basic_ram  | Block RAM                | -              |
-| axi_fifo_packet_lut | LUT-based RAM            | commit/cancel  |
-| axi_fifo_packet_ram | Block RAM                | commit/cancel  |
+| Module name           | Memory type              | Extra features |
+| --------------------- | ------------------------ | -------------- |
+| axi_fifo_basic_lut    | LUT-based RAM            | -              |
+| axi_fifo_basic_sr     | LUT-based shift register | -              |
+| axi_fifo_basic_ram    | Block RAM                | -              |
+| axi_fifo_basic_exram  | External RAM             | -              |
+| axi_fifo_packet_lut   | LUT-based RAM            | commit/cancel  |
+| axi_fifo_packet_ram   | Block RAM                | commit/cancel  |
+| axi_fifo_packet_exram | External RAM             | commit/cancel  |
+
+Other modules
+-------------
+
+| Module name           | Description                                                           |
+| --------------------- | --------------------------------------------------------------------- |
+| ram_wrapper           | Block RAM wrapper with configurable latency, for use with exram FIFOs |
 
 Commit/cancel (packet FIFOs)
 ----------------------------
