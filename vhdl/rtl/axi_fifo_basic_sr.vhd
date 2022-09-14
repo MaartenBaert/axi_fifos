@@ -68,17 +68,17 @@ begin
                 v_push := (input_valid = '1' and s_full = '0');
                 v_pop := (output_ready = '1' and s_empty = '0');
 
-                -- push to memory
-                if v_push then
-                    r_memory <= r_memory(1 to depth - 1) & input_data;
-                end if;
-
                 -- update read pos
                 if v_push and not v_pop then
                     r_read_pos <= r_read_pos - 1;
                 end if;
                 if v_pop and not v_push then
                     r_read_pos <= r_read_pos + 1;
+                end if;
+
+                -- push to memory
+                if v_push then
+                    r_memory <= r_memory(1 to depth - 1) & input_data;
                 end if;
 
             end if;

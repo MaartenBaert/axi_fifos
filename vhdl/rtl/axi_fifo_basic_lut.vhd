@@ -68,6 +68,16 @@ begin
 
             else
 
+                -- pop
+                if output_ready = '1' and s_empty = '0' then
+                    if r_read_pos = depth - 1 then
+                        r_read_pos <= 0;
+                        r_wrapped <= '0';
+                    else
+                        r_read_pos <= r_read_pos + 1;
+                    end if;
+                end if;
+
                 -- push
                 if input_valid = '1' and s_full = '0' then
                     r_memory(r_write_pos) <= input_data;
@@ -76,16 +86,6 @@ begin
                         r_wrapped <= '1';
                     else
                         r_write_pos <= r_write_pos + 1;
-                    end if;
-                end if;
-
-                -- pop
-                if output_ready = '1' and s_empty = '0' then
-                    if r_read_pos = depth - 1 then
-                        r_read_pos <= 0;
-                        r_wrapped <= '0';
-                    else
-                        r_read_pos <= r_read_pos + 1;
                     end if;
                 end if;
 

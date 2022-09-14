@@ -71,7 +71,7 @@ architecture rtl of axi_fifo_basic_exram is
 
 begin
 
-    -- generate incremented positions (combinatorially)
+    -- generate fetch position and fill level (combinatorially)
     s_fetch_pos <= r_read_pos + c_bypass_depth - depth when r_read_pos + c_bypass_depth >= depth else r_read_pos + c_bypass_depth;
     s_fill_level <= depth + r_write_pos - r_read_pos when r_wrapped = '1' else r_write_pos - r_read_pos;
 
@@ -121,6 +121,21 @@ begin
                 r_fetch_enable_dl(1 to ram_latency) <= r_fetch_enable_dl(0 to ram_latency - 1);
                 r_fetch_valid_dl(1 to ram_latency) <= r_fetch_valid_dl(0 to ram_latency - 1);
 
+                -- pop
+                if output_ready = '1' and s_empty = '0' then
+                    if r_bypass_read_pos = c_bypass_depth - 1 then
+                        r_bypass_read_pos <= 0;
+                    else
+                        r_bypass_read_pos <= r_bypass_read_pos + 1;
+                    end if;
+                    if r_read_pos = depth - 1 then
+                        r_read_pos <= 0;
+                        r_wrapped <= '0';
+                    else
+                        r_read_pos <= r_read_pos + 1;
+                    end if;
+                end if;
+
                 -- push
                 if input_valid = '1' and s_full = '0' then
                     if output_ready = '1' and s_empty = '0' then
@@ -153,21 +168,6 @@ begin
                         r_bypass_fetch_pos <= 0;
                     else
                         r_bypass_fetch_pos <= r_bypass_fetch_pos + 1;
-                    end if;
-                end if;
-
-                -- pop
-                if output_ready = '1' and s_empty = '0' then
-                    if r_bypass_read_pos = c_bypass_depth - 1 then
-                        r_bypass_read_pos <= 0;
-                    else
-                        r_bypass_read_pos <= r_bypass_read_pos + 1;
-                    end if;
-                    if r_read_pos = depth - 1 then
-                        r_read_pos <= 0;
-                        r_wrapped <= '0';
-                    else
-                        r_read_pos <= r_read_pos + 1;
                     end if;
                 end if;
 

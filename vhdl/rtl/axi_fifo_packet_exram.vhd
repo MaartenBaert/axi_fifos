@@ -76,13 +76,8 @@ architecture rtl of axi_fifo_packet_exram is
     signal r_write_wrapped  : std_logic;
     signal r_commit_wrapped : std_logic;
 
-    -- write position with cancellation taken into accound
-    signal s_write_pos_cancelled     : natural range 0 to depth - 1;
-    signal s_write_wrapped_cancelled : std_logic;
-
     -- fetch position and fill level
     signal s_fetch_pos           : natural range 0 to depth - 1;
-    --signal s_fill_level          : integer;--natural range 0 to depth;
     signal s_fill_level_write    : natural range 0 to depth;
     signal s_fill_level_commit   : natural range 0 to depth;
     signal s_fill_level          : natural range 0 to depth;
@@ -93,11 +88,8 @@ architecture rtl of axi_fifo_packet_exram is
 
 begin
 
-    -- generate incremented positions (combinatorially)
-    s_write_pos_cancelled <= r_commit_pos when input_cancel = '1' else r_write_pos;
-    s_write_wrapped_cancelled <= r_commit_wrapped when input_cancel = '1' else r_write_wrapped;
+    -- generate fetch position and fill level (combinatorially)
     s_fetch_pos <= r_read_pos + c_bypass_depth - depth when r_read_pos + c_bypass_depth >= depth else r_read_pos + c_bypass_depth;
-    --s_fill_level <= depth + s_write_pos_cancelled - r_read_pos when s_write_wrapped_cancelled = '1' else s_write_pos_cancelled - r_read_pos;
     s_fill_level_write <= depth + r_write_pos - r_read_pos when r_write_wrapped = '1' else r_write_pos - r_read_pos;
     s_fill_level_commit <= depth + r_commit_pos - r_read_pos when r_commit_wrapped = '1' else r_commit_pos - r_read_pos;
     s_fill_level <= s_fill_level_commit when input_cancel = '1' else s_fill_level_write;
@@ -113,15 +105,10 @@ begin
 
     -- RAM interface
     write_enable <= input_valid and not s_full;
-    write_address <= s_write_pos_cancelled;
+    write_address <= r_commit_pos when input_cancel = '1' else r_write_pos;
     write_data <= input_data;
     read_enable <= output_ready and not s_empty;
     read_address <= s_fetch_pos;
-
-    -- start of fetch delay line
-    -- r_fetch_enable_dl(0) <= output_ready and not s_empty;
-    -- r_fetch_commit_dl(0) <= '1' when s_fill_level_commit > c_bypass_depth else '0';
-    -- r_fetch_write_dl(0) <= '1' when s_fill_level_write > c_bypass_depth else '0';
 
     process(clk)
         variable v_fetch_enable_dl   : std_logic_vector(0 to ram_latency);
@@ -170,6 +157,22 @@ begin
                 v_fetch_commit_dl := bool_to_logic(s_fill_level_commit > c_bypass_depth) & r_fetch_commit_dl;
                 v_fetch_write_dl := bool_to_logic(s_fill_level_write > c_bypass_depth) & r_fetch_write_dl;
 
+                -- pop
+                if output_ready = '1' and s_empty = '0' then
+                    if r_bypass_read_pos = c_bypass_depth - 1 then
+                        r_bypass_read_pos <= 0;
+                    else
+                        r_bypass_read_pos <= r_bypass_read_pos + 1;
+                    end if;
+                    if r_read_pos = depth - 1 then
+                        r_read_pos <= 0;
+                        v_write_wrapped := '0';
+                        v_commit_wrapped := '0';
+                    else
+                        r_read_pos <= r_read_pos + 1;
+                    end if;
+                end if;
+
                 -- push
                 if input_cancel = '1' then
                     v_fetch_write_dl := v_fetch_commit_dl;
@@ -214,22 +217,6 @@ begin
                         r_bypass_fetch_pos <= 0;
                     else
                         r_bypass_fetch_pos <= r_bypass_fetch_pos + 1;
-                    end if;
-                end if;
-
-                -- pop
-                if output_ready = '1' and s_empty = '0' then
-                    if r_bypass_read_pos = c_bypass_depth - 1 then
-                        r_bypass_read_pos <= 0;
-                    else
-                        r_bypass_read_pos <= r_bypass_read_pos + 1;
-                    end if;
-                    if r_read_pos = depth - 1 then
-                        r_read_pos <= 0;
-                        v_write_wrapped := '0';
-                        v_commit_wrapped := '0';
-                    else
-                        r_read_pos <= r_read_pos + 1;
                     end if;
                 end if;
 
