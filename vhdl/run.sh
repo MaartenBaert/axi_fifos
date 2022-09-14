@@ -27,9 +27,11 @@ TESTBENCHES=(
     "axi_fifo_basic_sr_tb"
     "axi_fifo_basic_ram_tb"
     "axi_fifo_basic_exram_tb"
+    "axi_fifo_basic_equiv_tb"
     "axi_fifo_packet_lut_tb"
     "axi_fifo_packet_ram_tb"
     "axi_fifo_packet_exram_tb"
+    "axi_fifo_packet_equiv_tb"
 )
 
 echo "Processing RTL files ..."
