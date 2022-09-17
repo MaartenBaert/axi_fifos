@@ -137,7 +137,7 @@ begin
     -- input process
     proc_input: process
         variable v_pcg32_state : unsigned(63 downto 0) := x"1829dd5c9ae30913";
-        variable v_stutter : std_logic_vector(7 downto 0);
+        variable v_stutter : std_logic_vector(8 downto 0);
         variable v_data : std_logic_vector(c_width - 1 downto 0);
     begin
         wait until rising_edge(clk);
@@ -153,7 +153,7 @@ begin
             input_valid <= v_stutter(0);
             input_cancel <= v_stutter(1) and v_stutter(2) and v_stutter(3);
             input_commit <= v_stutter(4) and v_stutter(5) and v_stutter(6);
-            output_ready <= v_stutter(7);
+            output_ready <= v_stutter(7) and v_stutter(8);
             wait until rising_edge(clk);
         end loop;
         wait;
