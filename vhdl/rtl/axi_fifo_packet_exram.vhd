@@ -61,7 +61,7 @@ architecture rtl of axi_fifo_packet_exram is
     type bypass_memory_t is array(0 to c_bypass_depth - 1) of std_logic_vector(width - 1 downto 0);
     signal r_bypass_memory : bypass_memory_t;
     attribute RAM_STYLE : string;
-    attribute RAM_STYLE of r_bypass_memory : signal is "LUTRAM";
+    attribute RAM_STYLE of r_bypass_memory : signal is "distributed";
 
     -- bypass read and write positions
     signal r_bypass_write_pos  : natural range 0 to c_bypass_depth - 1;

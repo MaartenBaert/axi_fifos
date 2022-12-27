@@ -33,7 +33,7 @@ architecture rtl of ram_wrapper is
     type memory_t is array(0 to depth - 1) of std_logic_vector(width - 1 downto 0);
     signal r_memory : memory_t;
     attribute RAM_STYLE : string;
-    attribute RAM_STYLE of r_memory : signal is "BRAM";
+    attribute RAM_STYLE of r_memory : signal is "block";
 
     -- delay lines
     type enable_array_t is array(integer range <>) of std_logic;

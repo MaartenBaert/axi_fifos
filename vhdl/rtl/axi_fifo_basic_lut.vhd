@@ -34,7 +34,7 @@ architecture rtl of axi_fifo_basic_lut is
     type memory_t is array(0 to depth - 1) of std_logic_vector(width - 1 downto 0);
     signal r_memory : memory_t;
     attribute RAM_STYLE : string;
-    attribute RAM_STYLE of r_memory : signal is "LUTRAM";
+    attribute RAM_STYLE of r_memory : signal is "distributed";
 
     -- read and write positions
     signal r_read_pos  : natural range 0 to depth - 1;

@@ -36,7 +36,7 @@ architecture rtl of axi_fifo_packet_ram is
     type memory_t is array(0 to depth - 1) of std_logic_vector(width - 1 downto 0);
     signal r_memory : memory_t;
     attribute RAM_STYLE : string;
-    attribute RAM_STYLE of r_memory : signal is "BRAM";
+    attribute RAM_STYLE of r_memory : signal is "block";
 
     -- memory output register and bypass logic
     signal r_memory_data : std_logic_vector(width - 1 downto 0);
