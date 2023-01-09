@@ -80,7 +80,6 @@ architecture rtl of axi_fifo_packet_exram is
     signal s_fetch_pos           : natural range 0 to depth - 1;
     signal s_fill_level_write    : natural range 0 to depth;
     signal s_fill_level_commit   : natural range 0 to depth;
-    signal s_fill_level          : natural range 0 to depth;
 
     -- full and empty flags
     signal s_full  : std_logic;
@@ -92,7 +91,6 @@ begin
     s_fetch_pos <= r_read_pos + c_bypass_depth - depth when r_read_pos + c_bypass_depth >= depth else r_read_pos + c_bypass_depth;
     s_fill_level_write <= depth + r_write_pos - r_read_pos when r_write_wrapped = '1' else r_write_pos - r_read_pos;
     s_fill_level_commit <= depth + r_commit_pos - r_read_pos when r_commit_wrapped = '1' else r_commit_pos - r_read_pos;
-    s_fill_level <= s_fill_level_commit when input_cancel = '1' else s_fill_level_write;
 
     -- generate full and empty flags (combinatorially)
     s_full <= '1' when r_read_pos = r_write_pos and r_write_wrapped = '1' else '0';
@@ -120,7 +118,7 @@ begin
         variable v_commit_pos        : natural range 0 to depth - 1;
         variable v_write_wrapped     : std_logic;
         variable v_commit_wrapped    : std_logic;
-        variable v_fill_level_adj    : integer;--natural range 0 to depth;
+        variable v_fill_level        : natural range 0 to depth;
     begin
         if rising_edge(clk) then
             if rst = '1' then
@@ -181,12 +179,15 @@ begin
                     v_write_wrapped := v_commit_wrapped;
                 end if;
                 if input_valid = '1' and s_full = '0' then
-                    if output_ready = '1' and s_empty = '0' then
-                        v_fill_level_adj := s_fill_level - 1;
+                    if input_cancel = '1' then
+                        v_fill_level := s_fill_level_commit;
                     else
-                        v_fill_level_adj := s_fill_level;
+                        v_fill_level := s_fill_level_write;
                     end if;
-                    if v_fill_level_adj < c_bypass_depth then
+                    if output_ready = '1' and s_empty = '0' then
+                        v_fill_level := v_fill_level - 1;
+                    end if;
+                    if v_fill_level < c_bypass_depth then
                         r_bypass_memory(v_bypass_write_pos) <= input_data;
                     end if;
                     if v_bypass_write_pos = c_bypass_depth - 1 then
